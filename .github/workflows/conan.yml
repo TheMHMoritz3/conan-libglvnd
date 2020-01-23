@@ -94,7 +94,7 @@ jobs:
           python-version: '3.8'
       - name: Install Conan
         run: |
-          apt update
+          sudo apt update
           sudo apt-get install libpthread-stubs0 libpthread-stubs0-dev libx11-dev libx11-doc libxau-dev libxcb1-dev libxdmcp-dev x11proto-core-dev x11proto-input-dev x11proto-kb-dev xorg-sgml-doctools xtrans-dev
           pip install bincrafters_package_tools
           conan user
