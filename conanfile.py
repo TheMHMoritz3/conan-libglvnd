@@ -1,9 +1,9 @@
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, AutoToolsBuildEnvironment, tools
 import os
 
 
-class LibnameConan(ConanFile):
-    name = "libname"
+class GLVNDConan(ConanFile):
+    name = "libglvnd"
     description = "Keep it short"
     topics = ("conan", "libname", "logging")
     url = "https://github.com/bincrafters/conan-libname"
@@ -11,18 +11,17 @@ class LibnameConan(ConanFile):
     license = "MIT"  # Indicates license type of the packaged library; please use SPDX Identifiers https://spdx.org/licenses/
     # Remove following lines if the target lib does not use CMake
     exports_sources = ["CMakeLists.txt"]
-    generators = "cmake"
-
+    version = "None"
     # Options may need to change depending on the packaged library
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}
-
-    _source_subfolder = "source_subfolder"
+    _extractionfolder = "source_subfolder"
+    _source_subfolder = "source_subfolder/libglvnd-v1.2.0"
     _build_subfolder = "build_subfolder"
 
     requires = (
-        "zlib/1.2.11"
+        "zlib/1.2.11",
     )
 
     def config_options(self):
@@ -30,26 +29,33 @@ class LibnameConan(ConanFile):
             del self.options.fPIC
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
-
-    def _configure_cmake(self):
-        cmake = CMake(self)
-        cmake.definitions["BUILD_TESTS"] = False  # example
-        cmake.configure(build_folder=self._build_subfolder)
-        return cmake
+        tools.download("https://gitlab.freedesktop.org/glvnd/libglvnd/-/archive/v1.2.0/libglvnd-v1.2.0.zip", "libglvnd.zip")
+        tools.unzip("libglvnd.zip", self._extractionfolder)
+#         tools.replace_in_file(self._source_subfolder + "/CMakeLists.txt", "project(VTK)",
+#                               '''project(VTK)
+# include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+# conan_basic_setup()''')
 
     def build(self):
-        cmake = self._configure_cmake()
-        cmake.build()
+        os.chdir(self._source_subfolder)
+        if self.settings.os == 'Linux':
+            self.run("chmod +x autogen.sh")
+        self.run("./autogen.sh")
+        autotools = AutoToolsBuildEnvironment(self)
+        autotools.configure()
+        autotools.make()
 
     def package(self):
-        self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
-        cmake = self._configure_cmake()
-        cmake.install()
-        # If the CMakeLists.txt has a proper install method, the steps below may be redundant
-        # If so, you can just remove the lines below
+        # self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
+        # cmake = self._configure_cmake()
+        # cmake.install()
+        # # If the CMakeLists.txt has a proper install method, the steps below may be redundant
+        # # If so, you can just remove the lines below
+        os.chdir(self._source_subfolder)
+        autotools = AutoToolsBuildEnvironment(self)
+        autotools.configure()
+        autotools.install()
+        
         include_folder = os.path.join(self._source_subfolder, "include")
         self.copy(pattern="*", dst="include", src=include_folder)
         self.copy(pattern="*.dll", dst="bin", keep_path=False)
