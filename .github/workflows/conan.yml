@@ -95,7 +95,7 @@ jobs:
       - name: Install Conan
         run: |
           sudo apt update
-          sudo apt-get install libpthread-stubs0 libpthread-stubs0-dev libx11-dev libx11-doc libxau-dev libxcb1-dev libxdmcp-dev x11proto-core-dev x11proto-input-dev x11proto-kb-dev xorg-sgml-doctools xtrans-dev
+          sudo apt-get install libx11-dev
           pip install bincrafters_package_tools
           conan user
       - name: Run
