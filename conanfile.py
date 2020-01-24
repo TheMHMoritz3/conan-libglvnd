@@ -22,6 +22,11 @@ class GLVNDConan(ConanFile):
 
     requires = (
         "zlib/1.2.11",
+	"libx11/1.6.8@bincrafters/stable",
+	"mesa/19.3.1@bincrafters/stable",
+	"libxext/1.3.4@bincrafters/stable",
+	"xorgproto/2019.1@bincrafters/stable",
+	"libunwind/1.3.1@bincrafters/stable"
     )
 
     def config_options(self):
@@ -31,10 +36,6 @@ class GLVNDConan(ConanFile):
     def source(self):
         tools.download("https://gitlab.freedesktop.org/glvnd/libglvnd/-/archive/v1.2.0/libglvnd-v1.2.0.zip", "libglvnd.zip")
         tools.unzip("libglvnd.zip", self._extractionfolder)
-#         tools.replace_in_file(self._source_subfolder + "/CMakeLists.txt", "project(VTK)",
-#                               '''project(VTK)
-# include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-# conan_basic_setup()''')
 
     def build(self):
         os.chdir(self._source_subfolder)
@@ -55,7 +56,7 @@ class GLVNDConan(ConanFile):
         autotools = AutoToolsBuildEnvironment(self)
         autotools.configure()
         autotools.install()
-        
+
         include_folder = os.path.join(self._source_subfolder, "include")
         self.copy(pattern="*", dst="include", src=include_folder)
         self.copy(pattern="*.dll", dst="bin", keep_path=False)
